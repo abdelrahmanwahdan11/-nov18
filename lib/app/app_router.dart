@@ -144,7 +144,7 @@ class AppRouter {
         );
       case AppRoutes.editProfile:
         return MaterialPageRoute(
-          builder: (_) => const EditProfileScreen(),
+          builder: (_) => EditProfileScreen(authController: authController),
         );
       case AppRoutes.settings:
         return MaterialPageRoute(

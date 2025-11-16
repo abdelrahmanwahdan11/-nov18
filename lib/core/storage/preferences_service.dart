@@ -29,4 +29,9 @@ class PreferencesService {
     final prefs = await _instance;
     return prefs.getString(key);
   }
+
+  Future<void> remove(String key) async {
+    final prefs = await _instance;
+    await prefs.remove(key);
+  }
 }
