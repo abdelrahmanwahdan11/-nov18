@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../app/routes.dart';
 import '../../core/controllers/app_controller.dart';
+import '../../core/data/sample_stations.dart';
 import '../../core/models/compare_entry.dart';
 import '../../core/models/station.dart';
 import '../../core/widgets/ai_info_button.dart';
@@ -56,24 +57,7 @@ class _StationsListScreenState extends State<StationsListScreen> {
   }
 
   void _generateStations() {
-    final images = [
-      'https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=800&q=60',
-      'https://images.unsplash.com/photo-1489515217757-5fd1be406fef?auto=format&fit=crop&w=900&q=60',
-      'https://images.unsplash.com/photo-1502877338535-766e1452684a?auto=format&fit=crop&w=900&q=60',
-    ];
-    for (var i = 0; i < 12; i++) {
-      _allStations.add(
-        Station(
-          id: 'station-$i',
-          name: 'Green Hub ${i + 1}',
-          city: i.isEven ? 'Munich' : 'Abu Dhabi',
-          country: i.isEven ? 'Germany' : 'UAE',
-          price: 0.25 + i * 0.02,
-          availability: i % 3 == 0 ? 'Now' : '24/7',
-          image: images[i % images.length],
-        ),
-      );
-    }
+    _allStations.addAll(buildSampleStations());
   }
 
   void _onScroll() {

@@ -82,6 +82,7 @@ class TripsController extends ChangeNotifier {
   String _query = '';
 
   Stream<List<Trip>> get tripsStream => _controller.stream;
+  List<Trip> get allTrips => List.unmodifiable(_items);
   List<Trip> get visibleTrips => List.unmodifiable(_visible);
   Trip? get nextTrip {
     final futureTrips = _items

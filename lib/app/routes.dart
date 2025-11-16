@@ -16,6 +16,7 @@ class AppRoutes {
   static const maintenance = '/maintenance';
   static const catalog = '/catalog';
   static const compare = '/catalog/compare';
+  static const globalSearch = '/search';
   static const profile = '/profile';
   static const editProfile = '/profile/edit';
   static const settings = '/settings';

@@ -57,6 +57,7 @@ class CatalogController extends ChangeNotifier {
   String _sortMode = 'Recommended';
 
   ValueNotifier<List<CatalogItem>> get itemsNotifier => _listNotifier;
+  List<CatalogItem> get allItems => List.unmodifiable(_items);
   List<CatalogItem> get selectedForCompare => List.unmodifiable(_selected);
 
   Future<void> load() async {

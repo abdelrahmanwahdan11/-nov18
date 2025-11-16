@@ -24,6 +24,7 @@ import '../features/onboarding/onboarding_screen.dart';
 import '../features/profile/edit_profile_screen.dart';
 import '../features/profile/profile_screen.dart';
 import '../features/quick_controls/quick_controls_screen.dart';
+import '../features/search/global_search_screen.dart';
 import '../features/settings/settings_screen.dart';
 import '../features/stations/station_details_screen.dart';
 import '../features/stations/stations_list_screen.dart';
@@ -141,6 +142,14 @@ class AppRouter {
       case AppRoutes.profile:
         return MaterialPageRoute(
           builder: (_) => ProfileScreen(authController: authController),
+        );
+      case AppRoutes.globalSearch:
+        return MaterialPageRoute(
+          builder: (_) => GlobalSearchScreen(
+            catalogController: catalogController,
+            tripsController: tripsController,
+            vehicleController: vehicleController,
+          ),
         );
       case AppRoutes.editProfile:
         return MaterialPageRoute(
