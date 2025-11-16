@@ -9,6 +9,7 @@ import '../core/controllers/vehicle_controller.dart';
 import '../core/localization/app_localizations.dart';
 import '../core/theme/app_theme.dart';
 import 'app_router.dart';
+import 'routes.dart';
 
 class EVSmartApp extends StatefulWidget {
   const EVSmartApp({super.key});
@@ -52,6 +53,7 @@ class _EVSmartAppState extends State<EVSmartApp> {
           title: 'EV Smart Companion',
           debugShowCheckedModeBanner: false,
           locale: appController.locale,
+          initialRoute: AppRoutes.splash,
           supportedLocales: const [Locale('en'), Locale('ar')],
           localizationsDelegates: const [
             AppLocalizations.delegate,

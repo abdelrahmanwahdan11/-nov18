@@ -20,4 +20,5 @@ class AppRoutes {
   static const editProfile = '/profile/edit';
   static const settings = '/settings';
   static const notifications = '/notifications';
+  static const help = '/help';
 }

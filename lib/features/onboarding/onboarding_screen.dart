@@ -5,6 +5,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 
 import '../../app/routes.dart';
 import '../../core/controllers/auth_controller.dart';
+import '../../core/storage/preferences_service.dart';
 import '../../core/widgets/primary_button.dart';
 
 class OnboardingScreen extends StatefulWidget {
@@ -146,7 +147,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         : 'Next',
                     onPressed: () {
                       if (currentPage == slides.length - 1) {
-                        Navigator.of(context).pushReplacementNamed(AppRoutes.login);
+                        _finishOnboarding();
                       } else {
                         _controller.nextPage(
                           duration: 400.ms,
@@ -156,8 +157,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     },
                   ),
                   TextButton(
-                    onPressed: () => Navigator.of(context)
-                        .pushReplacementNamed(AppRoutes.login),
+                    onPressed: _finishOnboarding,
                     child: const Text('Skip'),
                   ),
                 ],
@@ -167,5 +167,14 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         ),
       ),
     );
+  }
+}
+
+extension _OnboardingPrefs on _OnboardingScreenState {
+  Future<void> _finishOnboarding() async {
+    await PreferencesService.instance
+        .setBool('onboardingComplete', true);
+    if (!mounted) return;
+    Navigator.of(context).pushReplacementNamed(AppRoutes.login);
   }
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../core/controllers/app_controller.dart';
+import '../../core/localization/app_localizations.dart';
 import '../../core/theme/app_colors.dart';
 
 class SettingsScreen extends StatelessWidget {
@@ -17,14 +18,16 @@ class SettingsScreen extends StatelessWidget {
       const Color(0xFFE11D48),
     ];
     return Scaffold(
-      appBar: AppBar(title: const Text('Settings')),
+      appBar: AppBar(title: Text(AppLocalizations.of(context).translate('settings'))),
       body: AnimatedBuilder(
         animation: appController,
         builder: (context, _) {
+          final locale = AppLocalizations.of(context);
           return ListView(
             padding: const EdgeInsets.all(24),
             children: [
-              const Text('Language'),
+              Text(locale.translate('language'),
+                  style: Theme.of(context).textTheme.titleMedium),
               RadioListTile(
                 title: const Text('English'),
                 value: 'en',
@@ -32,40 +35,45 @@ class SettingsScreen extends StatelessWidget {
                 onChanged: (value) => appController.changeLocale(const Locale('en')),
               ),
               RadioListTile(
-                title: const Text('Arabic'),
+                title: const Text('العربية'),
                 value: 'ar',
                 groupValue: appController.locale.languageCode,
                 onChanged: (value) => appController.changeLocale(const Locale('ar')),
               ),
-              const Divider(),
-              const Text('Theme'),
+              const Divider(height: 32),
+              Text(locale.translate('theme'),
+                  style: Theme.of(context).textTheme.titleMedium),
               RadioListTile(
-                title: const Text('System'),
+                title: Text(locale.translate('systemTheme')),
                 value: ThemeMode.system,
                 groupValue: appController.themeMode,
                 onChanged: (mode) => appController.changeTheme(mode!),
               ),
               RadioListTile(
-                title: const Text('Light'),
+                title: Text(locale.translate('lightTheme')),
                 value: ThemeMode.light,
                 groupValue: appController.themeMode,
                 onChanged: (mode) => appController.changeTheme(mode!),
               ),
               RadioListTile(
-                title: const Text('Dark'),
+                title: Text(locale.translate('darkTheme')),
                 value: ThemeMode.dark,
                 groupValue: appController.themeMode,
                 onChanged: (mode) => appController.changeTheme(mode!),
               ),
-              const Divider(),
-              const Text('Primary color'),
+              const Divider(height: 32),
+              Text(locale.translate('primaryColor'),
+                  style: Theme.of(context).textTheme.titleMedium),
+              const SizedBox(height: 12),
               Wrap(
                 spacing: 12,
+                runSpacing: 12,
                 children: palette
                     .map(
                       (color) => GestureDetector(
                         onTap: () => appController.changePrimaryColor(color),
                         child: CircleAvatar(
+                          radius: 24,
                           backgroundColor: color,
                           child: appController.primaryColor == color
                               ? const Icon(Icons.check, color: Colors.white)
@@ -75,21 +83,48 @@ class SettingsScreen extends StatelessWidget {
                     )
                     .toList(),
               ),
-              const Divider(),
+              const Divider(height: 32),
+              Text(locale.translate('units'),
+                  style: Theme.of(context).textTheme.titleMedium),
               SwitchListTile(
-                title: const Text('Use metric units'),
-                value: true,
-                onChanged: (_) {},
+                title: Text(locale.translate('metricUnits')),
+                value: appController.useMetric,
+                onChanged: appController.toggleMetric,
               ),
               SwitchListTile(
-                title: const Text('Celsius temperature'),
-                value: true,
-                onChanged: (_) {},
+                title: Text(locale.translate('celsiusUnits')),
+                value: appController.useCelsius,
+                onChanged: appController.toggleCelsius,
+              ),
+              const Divider(height: 32),
+              Text(locale.translate('notifications'),
+                  style: Theme.of(context).textTheme.titleMedium),
+              SwitchListTile(
+                title: Text(locale.translate('generalNotifications')),
+                value: appController.notificationsEnabled,
+                onChanged: appController.toggleNotifications,
               ),
               SwitchListTile(
-                title: const Text('Notifications'),
+                title: Text(locale.translate('chargingAlerts')),
                 value: true,
-                onChanged: (_) {},
+                onChanged: (_) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Charging alert preferences are stored locally until cloud sync is ready.'),
+                    ),
+                  );
+                },
+              ),
+              SwitchListTile(
+                title: Text(locale.translate('maintenanceReminders')),
+                value: true,
+                onChanged: (_) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Maintenance reminders stay enabled offline.'),
+                    ),
+                  );
+                },
               ),
             ],
           );

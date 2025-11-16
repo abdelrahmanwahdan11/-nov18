@@ -31,6 +31,15 @@ class CompareScreen extends StatelessWidget {
                 ],
               ),
               _row('Stat', items.map((e) => e.stat).toList()),
+              _row('Range',
+                  items.map((e) => e.rangeKm?.toString() ?? '--').toList()),
+              _row('Power',
+                  items.map((e) => e.power?.toString() ?? '--').toList()),
+              _row(
+                'Charge speed',
+                items.map((e) =>
+                    e.chargeSpeed != null ? '${e.chargeSpeed!.toStringAsFixed(0)} kW' : '--').toList(),
+              ),
               _row(
                 'Price',
                 items.map((e) => e.price?.toStringAsFixed(0) ?? '--').toList(),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:iconly/iconly.dart';
 
+import '../../app/routes.dart';
 import '../controllers/auth_controller.dart';
 import '../localization/app_localizations.dart';
 
@@ -15,14 +16,16 @@ class AppDrawer extends StatelessWidget {
     final user = authController.user;
     final locale = AppLocalizations.of(context);
     final entries = [
-      (locale.translate('dashboard'), IconlyBold.home, '/'),
-      (locale.translate('quickControls'), IconlyBold.setting, '/quick'),
-      ('Energy', IconlyBold.sun, '/energy'),
-      (locale.translate('trips'), IconlyBold.location, '/trips'),
-      ('Maintenance', IconlyBold.activity, '/maintenance'),
-      (locale.translate('catalog'), IconlyBold.bag, '/catalog'),
-      (locale.translate('notifications'), IconlyBold.notification, '/notifications'),
-      (locale.translate('settings'), IconlyBold.setting, '/settings'),
+      (locale.translate('dashboard'), IconlyBold.home, AppRoutes.home),
+      (locale.translate('quickControls'), IconlyBold.setting, AppRoutes.quick),
+      (locale.translate('energy'), IconlyBold.sun, AppRoutes.energy),
+      (locale.translate('stations'), IconlyBold.location, AppRoutes.stations),
+      (locale.translate('trips'), IconlyBold.discovery, AppRoutes.trips),
+      (locale.translate('maintenance'), IconlyBold.activity, AppRoutes.maintenance),
+      (locale.translate('catalog'), IconlyBold.bag, AppRoutes.catalog),
+      (locale.translate('notifications'), IconlyBold.notification, AppRoutes.notifications),
+      (locale.translate('settings'), IconlyBold.setting, AppRoutes.settings),
+      (locale.translate('help'), IconlyBold.info_circle, AppRoutes.help),
     ];
 
     return Drawer(

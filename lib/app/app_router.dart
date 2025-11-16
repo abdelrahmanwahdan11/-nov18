@@ -5,6 +5,8 @@ import '../core/controllers/auth_controller.dart';
 import '../core/controllers/catalog_controller.dart';
 import '../core/controllers/trips_controller.dart';
 import '../core/controllers/vehicle_controller.dart';
+import '../core/models/station.dart';
+import '../core/models/trip.dart';
 import '../features/auth/forgot_password_screen.dart';
 import '../features/auth/login_screen.dart';
 import '../features/auth/register_screen.dart';
@@ -13,6 +15,7 @@ import '../features/catalog/catalog_screen.dart';
 import '../features/catalog/compare_screen.dart';
 import '../features/charging/charging_screen.dart';
 import '../features/energy/energy_overview_screen.dart';
+import '../features/help/help_screen.dart';
 import '../features/home/home_dashboard_screen.dart';
 import '../features/maintenance/maintenance_screen.dart';
 import '../features/notifications/notifications_screen.dart';
@@ -25,6 +28,7 @@ import '../features/stations/station_details_screen.dart';
 import '../features/stations/stations_list_screen.dart';
 import '../features/trips/trip_details_screen.dart';
 import '../features/trips/trips_list_screen.dart';
+import '../features/splash/splash_screen.dart';
 import 'routes.dart';
 
 class AppRouter {
@@ -44,6 +48,8 @@ class AppRouter {
 
   Route<dynamic>? onGenerateRoute(RouteSettings settings) {
     switch (settings.name) {
+      case AppRoutes.splash:
+        return MaterialPageRoute(builder: (_) => const SplashScreen());
       case AppRoutes.onboarding:
         return MaterialPageRoute(
           builder: (_) => OnboardingScreen(authController: authController),
@@ -87,11 +93,14 @@ class AppRouter {
         );
       case AppRoutes.stations:
         return MaterialPageRoute(
-          builder: (_) => StationsListScreen(controller: catalogController),
+          builder: (_) => StationsListScreen(appController: appController),
         );
       case AppRoutes.stationDetails:
         return MaterialPageRoute(
-          builder: (_) => const StationDetailsScreen(),
+          builder: (_) => StationDetailsScreen(
+            station:
+                settings.arguments is Station ? settings.arguments as Station : null,
+          ),
         );
       case AppRoutes.trips:
         return MaterialPageRoute(
@@ -99,7 +108,9 @@ class AppRouter {
         );
       case AppRoutes.tripDetails:
         return MaterialPageRoute(
-          builder: (_) => const TripDetailsScreen(),
+          builder: (_) => TripDetailsScreen(
+            trip: settings.arguments is Trip ? settings.arguments as Trip : null,
+          ),
         );
       case AppRoutes.maintenance:
         return MaterialPageRoute(
@@ -129,16 +140,13 @@ class AppRouter {
         return MaterialPageRoute(
           builder: (_) => const NotificationsScreen(),
         );
+      case AppRoutes.help:
+        return MaterialPageRoute(
+          builder: (_) => const HelpScreen(),
+        );
       case AppRoutes.splash:
       default:
-        return MaterialPageRoute(
-          builder: (_) => HomeDashboardScreen(
-            authController: authController,
-            vehicleController: vehicleController,
-            appController: appController,
-            tripsController: tripsController,
-          ),
-        );
+        return MaterialPageRoute(builder: (_) => const SplashScreen());
     }
   }
 }

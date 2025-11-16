@@ -22,6 +22,7 @@ class _CatalogScreenState extends State<CatalogScreen> {
   bool showOverlay = false;
   String? overlayImage;
   String category = 'All';
+  String sortMode = 'Recommended';
 
   @override
   void initState() {
@@ -81,6 +82,20 @@ class _CatalogScreenState extends State<CatalogScreen> {
                           )
                           .toList(),
                     ),
+                    const SizedBox(height: 12),
+                    DropdownButton<String>(
+                      value: sortMode,
+                      items: const [
+                        DropdownMenuItem(value: 'Recommended', child: Text('Recommended')),
+                        DropdownMenuItem(value: 'Range', child: Text('Highest range')),
+                        DropdownMenuItem(value: 'Price', child: Text('Lowest price')),
+                      ],
+                      onChanged: (value) {
+                        if (value == null) return;
+                        setState(() => sortMode = value);
+                        widget.controller.changeSort(value);
+                      },
+                    ),
                     const SizedBox(height: 16),
                     ...items.map(
                       (item) => Padding(
@@ -107,6 +122,18 @@ class _CatalogScreenState extends State<CatalogScreen> {
                                       .titleMedium
                                       ?.copyWith(fontWeight: FontWeight.bold)),
                               Text(item.description),
+                              if (item.rangeKm != null)
+                                Padding(
+                                  padding: const EdgeInsets.only(top: 8),
+                                  child: Wrap(
+                                    spacing: 12,
+                                    children: [
+                                      Text('Range ${item.rangeKm} km'),
+                                      Text('Power ${item.power} hp'),
+                                      Text('Charge ${item.chargeSpeed?.toStringAsFixed(0)} kW'),
+                                    ],
+                                  ),
+                                ),
                               const SizedBox(height: 8),
                               Row(
                                 children: [

@@ -6,6 +6,9 @@ class Trip {
     required this.distanceKm,
     required this.date,
     required this.description,
+    this.durationHours = 4.0,
+    this.arrivalBattery = 0.25,
+    this.chargingStops = const [],
   });
 
   final String id;
@@ -14,4 +17,7 @@ class Trip {
   final double distanceKm;
   final DateTime date;
   final String description;
+  final double durationHours;
+  final double arrivalBattery;
+  final List<String> chargingStops;
 }
