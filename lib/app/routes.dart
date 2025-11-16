@@ -24,4 +24,5 @@ class AppRoutes {
   static const notifications = '/notifications';
   static const help = '/help';
   static const activity = '/activity';
+  static const insights = '/insights';
 }

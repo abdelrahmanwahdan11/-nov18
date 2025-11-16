@@ -6,10 +6,12 @@ import '../../app/routes.dart';
 import '../../core/controllers/activity_controller.dart';
 import '../../core/controllers/app_controller.dart';
 import '../../core/controllers/auth_controller.dart';
+import '../../core/controllers/insights_controller.dart';
 import '../../core/controllers/trips_controller.dart';
 import '../../core/controllers/vehicle_controller.dart';
 import '../../core/localization/app_localizations.dart';
 import '../../core/models/activity_entry.dart';
+import '../../core/models/insight.dart';
 import '../../core/widgets/ai_info_button.dart';
 import '../../core/widgets/app_card.dart';
 import '../../core/widgets/app_scaffold.dart';
@@ -27,6 +29,7 @@ class HomeDashboardScreen extends StatefulWidget {
     required this.appController,
     TripsController? tripsController,
     required this.activityController,
+    required this.insightsController,
   }) : tripsController = tripsController ?? TripsController();
 
   final AuthController authController;
@@ -34,6 +37,7 @@ class HomeDashboardScreen extends StatefulWidget {
   final AppController appController;
   final TripsController tripsController;
   final ActivityController activityController;
+  final InsightsController insightsController;
 
   @override
   State<HomeDashboardScreen> createState() => _HomeDashboardScreenState();
@@ -51,6 +55,7 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
         appController: widget.appController,
         tripsController: widget.tripsController,
         activityController: widget.activityController,
+        insightsController: widget.insightsController,
       ),
       QuickControlsScreen(authController: widget.authController),
       TripsListScreen(controller: widget.tripsController, embedded: true),
@@ -87,6 +92,7 @@ class _DashboardView extends StatelessWidget {
     required this.appController,
     required this.tripsController,
     required this.activityController,
+    required this.insightsController,
   });
 
   final AuthController authController;
@@ -94,19 +100,25 @@ class _DashboardView extends StatelessWidget {
   final AppController appController;
   final TripsController tripsController;
   final ActivityController activityController;
+  final InsightsController insightsController;
 
   @override
   Widget build(BuildContext context) {
     final locale = AppLocalizations.of(context);
     return AnimatedBuilder(
-      animation: Listenable.merge(
-          [vehicleController, appController, activityController]),
+      animation: Listenable.merge([
+        vehicleController,
+        appController,
+        activityController,
+        insightsController,
+      ]),
       builder: (context, _) {
         final vehicle = vehicleController.currentVehicle;
         final vehicles = vehicleController.vehicles;
         final greeting = authController.user?.name ?? 'Guest';
         final upcomingTrip = tripsController.nextTrip;
         final timeline = activityController.recentEntries();
+        final insights = insightsController.highlights;
         return SingleChildScrollView(
           padding: const EdgeInsets.all(24),
           child: Column(
@@ -239,6 +251,36 @@ class _DashboardView extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 24),
+              if (insights.isNotEmpty) ...[
+                SectionHeader(
+                  title: locale.translate('insightHighlights'),
+                  action: TextButton(
+                    onPressed: () =>
+                        Navigator.of(context).pushNamed(AppRoutes.insights),
+                    child: Text(locale.translate('viewInsights')),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                SizedBox(
+                  height: 150,
+                  child: ListView.separated(
+                    scrollDirection: Axis.horizontal,
+                    itemBuilder: (context, index) {
+                      final insight = insights[index];
+                      return SizedBox(
+                        width: 240,
+                        child: _InsightPreviewCard(
+                          insight: insight,
+                          locale: locale,
+                        ),
+                      );
+                    },
+                    separatorBuilder: (_, __) => const SizedBox(width: 16),
+                    itemCount: insights.length,
+                  ),
+                ),
+                const SizedBox(height: 24),
+              ],
               SectionHeader(
                 title: 'Battery status',
                 action: Text('${(vehicle.batteryLevel * 100).round()}%'),
@@ -428,6 +470,73 @@ class _DashboardView extends StatelessWidget {
           ),
         );
       },
+    );
+  }
+}
+
+class _InsightPreviewCard extends StatelessWidget {
+  const _InsightPreviewCard({
+    required this.insight,
+    required this.locale,
+  });
+
+  final Insight insight;
+  final AppLocalizations locale;
+
+  @override
+  Widget build(BuildContext context) {
+    return AppCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            insight.title,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: Theme.of(context)
+                .textTheme
+                .titleMedium
+                ?.copyWith(fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            insight.description,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
+          const Spacer(),
+          Row(
+            children: [
+              Icon(insight.category.icon,
+                  color: Theme.of(context).colorScheme.primary),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  '${(insight.impact * 100).round()}% · ${insight.trend >= 0 ? '+' : ''}${insight.trend}%',
+                  style: Theme.of(context)
+                      .textTheme
+                      .bodyMedium
+                      ?.copyWith(fontWeight: FontWeight.w600),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            locale.translate('insightAction'),
+            style: Theme.of(context)
+                .textTheme
+                .labelSmall
+                ?.copyWith(color: Theme.of(context).colorScheme.primary),
+          ),
+          Text(
+            insight.action,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
+      ),
     );
   }
 }

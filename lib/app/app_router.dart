@@ -4,6 +4,7 @@ import '../core/controllers/activity_controller.dart';
 import '../core/controllers/app_controller.dart';
 import '../core/controllers/auth_controller.dart';
 import '../core/controllers/catalog_controller.dart';
+import '../core/controllers/insights_controller.dart';
 import '../core/controllers/trips_controller.dart';
 import '../core/controllers/vehicle_controller.dart';
 import '../core/models/compare_entry.dart';
@@ -21,6 +22,7 @@ import '../features/energy/energy_overview_screen.dart';
 import '../features/garage/garage_screen.dart';
 import '../features/help/help_screen.dart';
 import '../features/home/home_dashboard_screen.dart';
+import '../features/insights/insights_screen.dart';
 import '../features/maintenance/maintenance_screen.dart';
 import '../features/notifications/notifications_screen.dart';
 import '../features/onboarding/onboarding_screen.dart';
@@ -44,6 +46,7 @@ class AppRouter {
     required this.catalogController,
     required this.appController,
     required this.activityController,
+    required this.insightsController,
   });
 
   final AuthController authController;
@@ -52,6 +55,7 @@ class AppRouter {
   final CatalogController catalogController;
   final AppController appController;
   final ActivityController activityController;
+  final InsightsController insightsController;
 
   Route<dynamic>? onGenerateRoute(RouteSettings settings) {
     switch (settings.name) {
@@ -85,6 +89,7 @@ class AppRouter {
             appController: appController,
             tripsController: tripsController,
             activityController: activityController,
+            insightsController: insightsController,
           ),
         );
       case AppRoutes.quick:
@@ -184,6 +189,13 @@ class AppRouter {
         return MaterialPageRoute(
           builder: (_) => ActivityCenterScreen(
             controller: activityController,
+            appController: appController,
+          ),
+        );
+      case AppRoutes.insights:
+        return MaterialPageRoute(
+          builder: (_) => InsightsScreen(
+            controller: insightsController,
             appController: appController,
           ),
         );
