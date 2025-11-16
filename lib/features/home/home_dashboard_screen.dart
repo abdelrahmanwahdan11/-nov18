@@ -6,6 +6,7 @@ import '../../app/routes.dart';
 import '../../core/controllers/activity_controller.dart';
 import '../../core/controllers/app_controller.dart';
 import '../../core/controllers/auth_controller.dart';
+import '../../core/controllers/diagnostics_controller.dart';
 import '../../core/controllers/insights_controller.dart';
 import '../../core/controllers/trips_controller.dart';
 import '../../core/controllers/vehicle_controller.dart';
@@ -30,6 +31,7 @@ class HomeDashboardScreen extends StatefulWidget {
     TripsController? tripsController,
     required this.activityController,
     required this.insightsController,
+    required this.diagnosticsController,
   }) : tripsController = tripsController ?? TripsController();
 
   final AuthController authController;
@@ -38,6 +40,7 @@ class HomeDashboardScreen extends StatefulWidget {
   final TripsController tripsController;
   final ActivityController activityController;
   final InsightsController insightsController;
+  final DiagnosticsController diagnosticsController;
 
   @override
   State<HomeDashboardScreen> createState() => _HomeDashboardScreenState();
@@ -56,6 +59,7 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
         tripsController: widget.tripsController,
         activityController: widget.activityController,
         insightsController: widget.insightsController,
+        diagnosticsController: widget.diagnosticsController,
       ),
       QuickControlsScreen(authController: widget.authController),
       TripsListScreen(controller: widget.tripsController, embedded: true),
@@ -93,6 +97,7 @@ class _DashboardView extends StatelessWidget {
     required this.tripsController,
     required this.activityController,
     required this.insightsController,
+    required this.diagnosticsController,
   });
 
   final AuthController authController;
@@ -101,6 +106,7 @@ class _DashboardView extends StatelessWidget {
   final TripsController tripsController;
   final ActivityController activityController;
   final InsightsController insightsController;
+  final DiagnosticsController diagnosticsController;
 
   @override
   Widget build(BuildContext context) {
@@ -111,6 +117,7 @@ class _DashboardView extends StatelessWidget {
         appController,
         activityController,
         insightsController,
+        diagnosticsController,
       ]),
       builder: (context, _) {
         final vehicle = vehicleController.currentVehicle;
@@ -119,6 +126,7 @@ class _DashboardView extends StatelessWidget {
         final upcomingTrip = tripsController.nextTrip;
         final timeline = activityController.recentEntries();
         final insights = insightsController.highlights;
+        final diagnostics = diagnosticsController.reports;
         return SingleChildScrollView(
           padding: const EdgeInsets.all(24),
           child: Column(
@@ -158,6 +166,22 @@ class _DashboardView extends StatelessWidget {
                 appController: appController,
               ),
               const SizedBox(height: 16),
+              if (diagnostics.isNotEmpty) ...[
+                SectionHeader(
+                  title: locale.translate('vehicleHealth'),
+                  action: TextButton(
+                    onPressed: () =>
+                        Navigator.of(context).pushNamed(AppRoutes.diagnostics),
+                    child: Text(locale.translate('viewDiagnostics')),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                _DiagnosticsPreview(
+                  controller: diagnosticsController,
+                  locale: locale,
+                ),
+                const SizedBox(height: 16),
+              ],
               SectionHeader(
                 title: locale.translate('garage'),
                 action: TextButton(
@@ -645,6 +669,119 @@ class _ActivityPreviewTile extends StatelessWidget {
       case ActivityCategory.alert:
         return locale.translate('activityAlerts');
     }
+  }
+}
+
+class _DiagnosticsPreview extends StatelessWidget {
+  const _DiagnosticsPreview({
+    required this.controller,
+    required this.locale,
+  });
+
+  final DiagnosticsController controller;
+  final AppLocalizations locale;
+
+  @override
+  Widget build(BuildContext context) {
+    final reports = controller.reports.toList()
+      ..sort((a, b) => a.health.compareTo(b.health));
+    final focusReports = reports.take(3).toList();
+    final overall = (controller.overallHealth * 100).round();
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        AppCard(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                locale.translate('overallHealth'),
+                style: Theme.of(context)
+                    .textTheme
+                    .titleMedium
+                    ?.copyWith(fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                '$overall%',
+                style: Theme.of(context)
+                    .textTheme
+                    .headlineSmall
+                    ?.copyWith(fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 8),
+              LinearProgressIndicator(value: controller.overallHealth),
+              const SizedBox(height: 8),
+              Text(
+                '${locale.translate('criticalIssues')}: ${controller.criticalCount}',
+                style: Theme.of(context).textTheme.bodyMedium,
+              ),
+              Text(
+                locale.translate('diagnosticsSubtitle'),
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 12),
+        SizedBox(
+          height: 150,
+          child: ListView.separated(
+            scrollDirection: Axis.horizontal,
+            itemBuilder: (context, index) {
+              final report = focusReports[index];
+              final statusKey = report.health > 0.8
+                  ? 'diagnosticsStatusGood'
+                  : report.health > 0.65
+                      ? 'diagnosticsStatusMonitor'
+                      : 'diagnosticsStatusAction';
+              final delta = (report.delta * 100).toStringAsFixed(1);
+              return SizedBox(
+                width: 190,
+                child: AppCard(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        locale.translate(report.titleKey),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: Theme.of(context)
+                            .textTheme
+                            .titleSmall
+                            ?.copyWith(fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(locale.translate(statusKey),
+                          style: Theme.of(context).textTheme.bodySmall),
+                      const SizedBox(height: 8),
+                      LinearProgressIndicator(value: report.health),
+                      const Spacer(),
+                      Text(
+                        '${(report.health * 100).round()}%',
+                        style: Theme.of(context)
+                            .textTheme
+                            .titleMedium
+                            ?.copyWith(fontWeight: FontWeight.bold),
+                      ),
+                      Text(
+                        '${report.delta >= 0 ? '+' : ''}$delta% vs last scan',
+                        style: Theme.of(context)
+                            .textTheme
+                            .bodySmall
+                            ?.copyWith(color: Theme.of(context).hintColor),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
+            separatorBuilder: (_, __) => const SizedBox(width: 12),
+            itemCount: focusReports.length,
+          ),
+        ),
+      ],
+    );
   }
 }
 

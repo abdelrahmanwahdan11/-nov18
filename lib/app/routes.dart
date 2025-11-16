@@ -25,4 +25,5 @@ class AppRoutes {
   static const help = '/help';
   static const activity = '/activity';
   static const insights = '/insights';
+  static const diagnostics = '/diagnostics';
 }

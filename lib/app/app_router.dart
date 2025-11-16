@@ -4,6 +4,7 @@ import '../core/controllers/activity_controller.dart';
 import '../core/controllers/app_controller.dart';
 import '../core/controllers/auth_controller.dart';
 import '../core/controllers/catalog_controller.dart';
+import '../core/controllers/diagnostics_controller.dart';
 import '../core/controllers/insights_controller.dart';
 import '../core/controllers/trips_controller.dart';
 import '../core/controllers/vehicle_controller.dart';
@@ -18,6 +19,7 @@ import '../features/auth/verify_code_screen.dart';
 import '../features/catalog/catalog_screen.dart';
 import '../features/catalog/compare_screen.dart';
 import '../features/charging/charging_screen.dart';
+import '../features/diagnostics/diagnostics_screen.dart';
 import '../features/energy/energy_overview_screen.dart';
 import '../features/garage/garage_screen.dart';
 import '../features/help/help_screen.dart';
@@ -47,6 +49,7 @@ class AppRouter {
     required this.appController,
     required this.activityController,
     required this.insightsController,
+    required this.diagnosticsController,
   });
 
   final AuthController authController;
@@ -56,6 +59,7 @@ class AppRouter {
   final AppController appController;
   final ActivityController activityController;
   final InsightsController insightsController;
+  final DiagnosticsController diagnosticsController;
 
   Route<dynamic>? onGenerateRoute(RouteSettings settings) {
     switch (settings.name) {
@@ -90,6 +94,7 @@ class AppRouter {
             tripsController: tripsController,
             activityController: activityController,
             insightsController: insightsController,
+            diagnosticsController: diagnosticsController,
           ),
         );
       case AppRoutes.quick:
@@ -197,6 +202,13 @@ class AppRouter {
           builder: (_) => InsightsScreen(
             controller: insightsController,
             appController: appController,
+          ),
+        );
+      case AppRoutes.diagnostics:
+        return MaterialPageRoute(
+          builder: (_) => VehicleDiagnosticsScreen(
+            controller: diagnosticsController,
+            vehicleController: vehicleController,
           ),
         );
       case AppRoutes.splash:
