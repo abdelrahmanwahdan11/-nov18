@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../../app/routes.dart';
 import '../../core/controllers/trips_controller.dart';
+import '../../core/models/compare_entry.dart';
 import '../../core/models/trip.dart';
 import '../../core/widgets/ai_info_button.dart';
 import '../../core/widgets/app_card.dart';
@@ -30,6 +31,7 @@ class _TripsListScreenState extends State<TripsListScreen> {
   List<Trip> trips = [];
   TripFilter filter = TripFilter.all;
   double? distanceFilter;
+  final Set<String> _compare = {};
   StreamSubscription<List<Trip>>? subscription;
   final ScrollController _scrollController = ScrollController();
 
@@ -122,30 +124,44 @@ class _TripsListScreenState extends State<TripsListScreen> {
                 ),
                 const SizedBox(height: 12),
                 ...trips.map(
-                  (trip) => Padding(
-                    padding: const EdgeInsets.only(bottom: 16),
-                    child: AppCard(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  trip.title,
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .titleMedium
-                                      ?.copyWith(fontWeight: FontWeight.bold),
+                  (trip) {
+                    final selected = _compare.contains(trip.id);
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 16),
+                      child: AppCard(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    trip.title,
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .titleMedium
+                                        ?.copyWith(fontWeight: FontWeight.bold),
+                                  ),
                                 ),
-                              ),
-                              IconButton(
-                                icon: const Icon(Icons.bar_chart_rounded),
-                                onPressed: () {},
-                              ),
-                              const AiInfoButton(),
-                            ],
-                          ),
+                                IconButton(
+                                  icon: const Icon(Icons.bar_chart_rounded),
+                                  onPressed: () {},
+                                ),
+                                IconButton(
+                                  icon: Icon(
+                                    selected
+                                        ? Icons.check_circle
+                                        : Icons.circle_outlined,
+                                    color: selected
+                                        ? Theme.of(context).colorScheme.primary
+                                        : null,
+                                  ),
+                                  tooltip: 'Add to compare',
+                                  onPressed: () => _toggleCompare(trip),
+                                ),
+                                const AiInfoButton(),
+                              ],
+                            ),
                           Text(
                               '${trip.city} · ${trip.distanceKm.toStringAsFixed(0)} km · ${(trip.durationHours).toStringAsFixed(1)} h'),
                           const SizedBox(height: 8),
@@ -179,7 +195,7 @@ class _TripsListScreenState extends State<TripsListScreen> {
                         ],
                       ),
                     ),
-                  ),
+                  },
                 ),
                 if (loadingMore)
                   const Padding(
@@ -197,10 +213,26 @@ class _TripsListScreenState extends State<TripsListScreen> {
     return Scaffold(
       appBar: AppBar(title: const Text('Trips')),
       body: list,
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: _addTrip,
-        label: const Text('Add trip'),
-        icon: const Icon(Icons.add_location_alt),
+      floatingActionButton: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (_compare.length >= 2)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: FloatingActionButton.extended(
+                heroTag: 'compareTrips',
+                onPressed: _openTripCompare,
+                label: Text('Compare (${_compare.length})'),
+                icon: const Icon(Icons.table_chart),
+              ),
+            ),
+          FloatingActionButton.extended(
+            heroTag: 'addTrip',
+            onPressed: _addTrip,
+            label: const Text('Add trip'),
+            icon: const Icon(Icons.add_location_alt),
+          ),
+        ],
       ),
     );
   }
@@ -262,6 +294,46 @@ class _TripsListScreenState extends State<TripsListScreen> {
           ],
         ),
       ),
+    );
+  }
+
+  void _toggleCompare(Trip trip) {
+    setState(() {
+      if (_compare.contains(trip.id)) {
+        _compare.remove(trip.id);
+      } else {
+        if (_compare.length >= 3) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Compare up to 3 trips at once.')),
+          );
+          return;
+        }
+        _compare.add(trip.id);
+      }
+    });
+  }
+
+  void _openTripCompare() {
+    final entries = widget.controller.visibleTrips
+        .where((trip) => _compare.contains(trip.id))
+        .map(
+          (trip) => CompareEntry(
+            title: trip.title,
+            stat:
+                '${trip.city} · ${trip.distanceKm.toStringAsFixed(0)} km',
+            range: '${trip.distanceKm.toStringAsFixed(0)} km total',
+            power: '${trip.durationHours.toStringAsFixed(1)} h drive',
+            chargeSpeed: trip.chargingStops.isNotEmpty
+                ? '${trip.chargingStops.length} planned stops'
+                : null,
+            availability:
+                'Arrival ${(trip.arrivalBattery * 100).round()}%',
+          ),
+        )
+        .toList();
+    Navigator.of(context).pushNamed(
+      AppRoutes.compare,
+      arguments: {'entries': entries, 'title': 'Trip compare'},
     );
   }
 }

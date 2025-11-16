@@ -5,6 +5,7 @@ import '../core/controllers/auth_controller.dart';
 import '../core/controllers/catalog_controller.dart';
 import '../core/controllers/trips_controller.dart';
 import '../core/controllers/vehicle_controller.dart';
+import '../core/models/compare_entry.dart';
 import '../core/models/station.dart';
 import '../core/models/trip.dart';
 import '../features/auth/forgot_password_screen.dart';
@@ -121,8 +122,21 @@ class AppRouter {
           builder: (_) => CatalogScreen(controller: catalogController),
         );
       case AppRoutes.compare:
+        List<CompareEntry>? entries;
+        String? title;
+        final args = settings.arguments;
+        if (args is List<CompareEntry>) {
+          entries = args;
+        } else if (args is Map<String, dynamic>) {
+          entries = args['entries'] as List<CompareEntry>?;
+          title = args['title'] as String?;
+        }
         return MaterialPageRoute(
-          builder: (_) => CompareScreen(controller: catalogController),
+          builder: (_) => CompareScreen(
+            controller: entries == null ? catalogController : null,
+            entries: entries,
+            title: title ?? 'Compare',
+          ),
         );
       case AppRoutes.profile:
         return MaterialPageRoute(

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../app/routes.dart';
 import '../../core/controllers/app_controller.dart';
+import '../../core/models/compare_entry.dart';
 import '../../core/models/station.dart';
 import '../../core/widgets/ai_info_button.dart';
 import '../../core/widgets/app_card.dart';
@@ -129,6 +130,13 @@ class _StationsListScreenState extends State<StationsListScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Stations')),
+      floatingActionButton: _compare.length >= 2
+          ? FloatingActionButton.extended(
+              onPressed: _openCompare,
+              label: Text('Compare (${_compare.length})'),
+              icon: const Icon(Icons.table_chart),
+            )
+          : null,
       body: loading
           ? const Padding(
               padding: EdgeInsets.all(24),
@@ -202,37 +210,31 @@ class _StationsListScreenState extends State<StationsListScreen> {
                       padding: EdgeInsets.symmetric(vertical: 24),
                       child: Center(child: CircularProgressIndicator()),
                     ),
-                  if (_compare.length >= 2)
-                    AppCard(
-                      child: Row(
-                        children: [
-                          Text('Ready to compare ${_compare.length} stations'),
-                          const Spacer(),
-                          TextButton(
-                            onPressed: () {
-                              showDialog(
-                                context: context,
-                                builder: (context) => AlertDialog(
-                                  title: const Text('Comparison coming soon'),
-                                  content: const Text(
-                                      'The selected stations will sync with the general compare table in the next drop.'),
-                                  actions: [
-                                    TextButton(
-                                      onPressed: () => Navigator.of(context).pop(),
-                                      child: const Text('Close'),
-                                    )
-                                  ],
-                                ),
-                              );
-                            },
-                            child: const Text('View summary'),
-                          ),
-                        ],
-                      ),
-                    ),
                 ],
               ),
             ),
+    );
+  }
+
+  List<Station> get _selectedStations =>
+      _allStations.where((station) => _compare.contains(station.id)).toList();
+
+  void _openCompare() {
+    final entries = _selectedStations
+        .map(
+          (station) => CompareEntry(
+            title: station.name,
+            stat: '${station.city}, ${station.country}',
+            price: 'USD ${station.price.toStringAsFixed(2)} / kW',
+            distance: widget.appController
+                .formatDistance(12 + station.price * 30),
+            availability: station.availability,
+          ),
+        )
+        .toList();
+    Navigator.of(context).pushNamed(
+      AppRoutes.compare,
+      arguments: {'entries': entries, 'title': 'Station compare'},
     );
   }
 
