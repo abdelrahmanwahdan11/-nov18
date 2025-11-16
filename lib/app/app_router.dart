@@ -7,6 +7,7 @@ import '../core/controllers/catalog_controller.dart';
 import '../core/controllers/coach_controller.dart';
 import '../core/controllers/diagnostics_controller.dart';
 import '../core/controllers/insights_controller.dart';
+import '../core/controllers/journey_controller.dart';
 import '../core/controllers/trips_controller.dart';
 import '../core/controllers/vehicle_controller.dart';
 import '../core/models/compare_entry.dart';
@@ -27,6 +28,7 @@ import '../features/garage/garage_screen.dart';
 import '../features/help/help_screen.dart';
 import '../features/home/home_dashboard_screen.dart';
 import '../features/insights/insights_screen.dart';
+import '../features/journeys/journey_planner_screen.dart';
 import '../features/maintenance/maintenance_screen.dart';
 import '../features/notifications/notifications_screen.dart';
 import '../features/onboarding/onboarding_screen.dart';
@@ -53,6 +55,7 @@ class AppRouter {
     required this.insightsController,
     required this.diagnosticsController,
     required this.coachController,
+    required this.journeyController,
   });
 
   final AuthController authController;
@@ -64,6 +67,7 @@ class AppRouter {
   final InsightsController insightsController;
   final DiagnosticsController diagnosticsController;
   final CoachController coachController;
+  final JourneyController journeyController;
 
   Route<dynamic>? onGenerateRoute(RouteSettings settings) {
     switch (settings.name) {
@@ -100,6 +104,7 @@ class AppRouter {
             insightsController: insightsController,
             diagnosticsController: diagnosticsController,
             coachController: coachController,
+            journeyController: journeyController,
           ),
         );
       case AppRoutes.quick:
@@ -212,6 +217,13 @@ class AppRouter {
       case AppRoutes.coach:
         return MaterialPageRoute(
           builder: (_) => DrivingCoachScreen(controller: coachController),
+        );
+      case AppRoutes.journeys:
+        return MaterialPageRoute(
+          builder: (_) => JourneyPlannerScreen(
+            controller: journeyController,
+            appController: appController,
+          ),
         );
       case AppRoutes.diagnostics:
         return MaterialPageRoute(

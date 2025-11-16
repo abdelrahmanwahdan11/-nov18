@@ -9,12 +9,14 @@ import '../../core/controllers/auth_controller.dart';
 import '../../core/controllers/coach_controller.dart';
 import '../../core/controllers/diagnostics_controller.dart';
 import '../../core/controllers/insights_controller.dart';
+import '../../core/controllers/journey_controller.dart';
 import '../../core/controllers/trips_controller.dart';
 import '../../core/controllers/vehicle_controller.dart';
 import '../../core/localization/app_localizations.dart';
 import '../../core/models/activity_entry.dart';
 import '../../core/models/driving_tip.dart';
 import '../../core/models/insight.dart';
+import '../../core/models/journey_plan.dart';
 import '../../core/widgets/ai_info_button.dart';
 import '../../core/widgets/app_card.dart';
 import '../../core/widgets/app_scaffold.dart';
@@ -35,6 +37,7 @@ class HomeDashboardScreen extends StatefulWidget {
     required this.insightsController,
     required this.diagnosticsController,
     required this.coachController,
+    required this.journeyController,
   }) : tripsController = tripsController ?? TripsController();
 
   final AuthController authController;
@@ -45,6 +48,7 @@ class HomeDashboardScreen extends StatefulWidget {
   final InsightsController insightsController;
   final DiagnosticsController diagnosticsController;
   final CoachController coachController;
+  final JourneyController journeyController;
 
   @override
   State<HomeDashboardScreen> createState() => _HomeDashboardScreenState();
@@ -65,6 +69,7 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
         insightsController: widget.insightsController,
         diagnosticsController: widget.diagnosticsController,
         coachController: widget.coachController,
+        journeyController: widget.journeyController,
       ),
       QuickControlsScreen(authController: widget.authController),
       TripsListScreen(controller: widget.tripsController, embedded: true),
@@ -92,6 +97,39 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
       ),
     );
   }
+
+  void _showJourneyNote(BuildContext context, String note) {
+    final locale = AppLocalizations.of(context);
+    showModalBottomSheet(
+      context: context,
+      builder: (context) => Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              locale.translate('journeyPlanner'),
+              style: Theme.of(context)
+                  .textTheme
+                  .titleLarge
+                  ?.copyWith(fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 12),
+            Text(note),
+            const SizedBox(height: 12),
+            Align(
+              alignment: Alignment.centerRight,
+              child: TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: Text(locale.translate('close')),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }
 
 class _DashboardView extends StatelessWidget {
@@ -104,6 +142,7 @@ class _DashboardView extends StatelessWidget {
     required this.insightsController,
     required this.diagnosticsController,
     required this.coachController,
+    required this.journeyController,
   });
 
   final AuthController authController;
@@ -114,6 +153,7 @@ class _DashboardView extends StatelessWidget {
   final InsightsController insightsController;
   final DiagnosticsController diagnosticsController;
   final CoachController coachController;
+  final JourneyController journeyController;
 
   @override
   Widget build(BuildContext context) {
@@ -126,6 +166,7 @@ class _DashboardView extends StatelessWidget {
         insightsController,
         diagnosticsController,
         coachController,
+        journeyController,
       ]),
       builder: (context, _) {
         final vehicle = vehicleController.currentVehicle;
@@ -136,6 +177,8 @@ class _DashboardView extends StatelessWidget {
         final insights = insightsController.highlights;
         final diagnostics = diagnosticsController.reports;
         final coachHighlights = coachController.highlightTips();
+        final journeyHighlights = journeyController.featuredPlans();
+        final nextJourney = journeyController.nextJourney;
         return SingleChildScrollView(
           padding: const EdgeInsets.all(24),
           child: Column(
@@ -335,6 +378,62 @@ class _DashboardView extends StatelessWidget {
                       return SizedBox(
                         width: 220,
                         child: _CoachPreviewCard(tip: tip),
+                      );
+                    },
+                  ),
+                ),
+                const SizedBox(height: 24),
+              ],
+              if (nextJourney != null) ...[
+                SectionHeader(
+                  title: locale.translate('journeyNext'),
+                  action: TextButton(
+                    onPressed: () =>
+                        Navigator.of(context).pushNamed(AppRoutes.journeys),
+                    child: Text(locale.translate('journeyViewPlanner')),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                _NextJourneyCard(
+                  plan: nextJourney,
+                  appController: appController,
+                  locale: locale,
+                  onOpenPlanner: () =>
+                      Navigator.of(context).pushNamed(AppRoutes.journeys),
+                ),
+                const SizedBox(height: 24),
+              ],
+              if (journeyHighlights.isNotEmpty) ...[
+                SectionHeader(
+                  title: locale.translate('journeyPlanner'),
+                  action: TextButton(
+                    onPressed: () =>
+                        Navigator.of(context).pushNamed(AppRoutes.journeys),
+                    child: Text(locale.translate('journeyViewPlanner')),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                SizedBox(
+                  height: 210,
+                  child: ListView.separated(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: journeyHighlights.length,
+                    separatorBuilder: (_, __) => const SizedBox(width: 16),
+                    itemBuilder: (context, index) {
+                      final plan = journeyHighlights[index];
+                      return SizedBox(
+                        width: 240,
+                        child: _JourneyPreviewCard(
+                          plan: plan,
+                          appController: appController,
+                          locale: locale,
+                          onOpenPlanner: () => Navigator.of(context)
+                              .pushNamed(AppRoutes.journeys),
+                          onFavorite: () =>
+                              journeyController.toggleFavorite(plan.id),
+                          onAiInfo: () =>
+                              _showJourneyNote(context, plan.aiNote),
+                        ),
                       );
                     },
                   ),
@@ -662,6 +761,195 @@ class _CoachPreviewCard extends StatelessWidget {
                   ?.copyWith(color: Theme.of(context).colorScheme.primary),
             ),
           ],
+        ],
+      ),
+    );
+  }
+}
+
+class _JourneyPreviewCard extends StatelessWidget {
+  const _JourneyPreviewCard({
+    required this.plan,
+    required this.appController,
+    required this.locale,
+    required this.onOpenPlanner,
+    required this.onFavorite,
+    required this.onAiInfo,
+  });
+
+  final JourneyPlan plan;
+  final AppController appController;
+  final AppLocalizations locale;
+  final VoidCallback onOpenPlanner;
+  final VoidCallback onFavorite;
+  final VoidCallback onAiInfo;
+
+  String _formatDeparture(DateTime date) {
+    final time = '${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
+    return '${date.month}/${date.day} · $time';
+  }
+
+  String _focusLabel(String focus) {
+    switch (focus) {
+      case 'express':
+        return locale.translate('journeyFocusFast');
+      case 'scenic':
+        return locale.translate('journeyFocusScenic');
+      default:
+        return locale.translate('journeyFocusEco');
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return AppCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(16),
+            child: AspectRatio(
+              aspectRatio: 2.2,
+              child: Image.network(plan.mapImage, fit: BoxFit.cover),
+            ),
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  '${plan.origin} → ${plan.destination}',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.titleMedium
+                      ?.copyWith(fontWeight: FontWeight.bold),
+                ),
+              ),
+              IconButton(
+                icon: Icon(
+                  plan.isFavorite ? Icons.favorite : Icons.favorite_border,
+                  color: plan.isFavorite
+                      ? theme.colorScheme.primary
+                      : theme.iconTheme.color,
+                ),
+                onPressed: onFavorite,
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Text('${appController.formatDistance(plan.distanceKm)} · '
+              '${plan.durationHours.toStringAsFixed(1)} h'),
+          const SizedBox(height: 4),
+          Text(
+            '${locale.translate('journeyDepartureLabel')}: ${_formatDeparture(plan.departure)}',
+            style: theme.textTheme.bodySmall,
+          ),
+          const SizedBox(height: 6),
+          Row(
+            children: [
+              Chip(
+                label: Text(_focusLabel(plan.focus)),
+                visualDensity: VisualDensity.compact,
+              ),
+              const SizedBox(width: 8),
+              AiInfoButton(onTap: onAiInfo),
+            ],
+          ),
+          const Spacer(),
+          TextButton(
+            onPressed: onOpenPlanner,
+            child: Text(locale.translate('journeyViewPlanner')),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _NextJourneyCard extends StatelessWidget {
+  const _NextJourneyCard({
+    required this.plan,
+    required this.appController,
+    required this.locale,
+    required this.onOpenPlanner,
+  });
+
+  final JourneyPlan plan;
+  final AppController appController;
+  final AppLocalizations locale;
+  final VoidCallback onOpenPlanner;
+
+  String _formatDeparture(DateTime date) {
+    final time = '${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
+    return '${date.month}/${date.day} · $time';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return AppCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            plan.title,
+            style: theme.textTheme.titleLarge
+                ?.copyWith(fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            '${plan.origin} → ${plan.destination}',
+            style: theme.textTheme.bodyMedium,
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  '${appController.formatDistance(plan.distanceKm)} · '
+                  '${plan.durationHours.toStringAsFixed(1)} h',
+                  style: theme.textTheme.titleMedium,
+                ),
+              ),
+              Chip(
+                label: Text('${plan.bufferPercent.toStringAsFixed(0)}%'),
+              ),
+              const SizedBox(width: 8),
+              Chip(
+                label: Text('${plan.chargeLimit.toStringAsFixed(0)}%'),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Text(
+            '${locale.translate('journeyDepartureLabel')}: ${_formatDeparture(plan.departure)}',
+          ),
+          const SizedBox(height: 8),
+          Text(
+            '${locale.translate('journeyEnergyLabel')}: ${plan.energyCost.toStringAsFixed(0)} kWh',
+          ),
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 8,
+            runSpacing: 4,
+            children: plan.stops.take(3).map((stop) {
+              return Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.primary.withOpacity(0.08),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(stop, style: theme.textTheme.bodySmall),
+              );
+            }).toList(),
+          ),
+          const SizedBox(height: 16),
+          PrimaryButton(
+            label: locale.translate('journeyViewPlanner'),
+            onPressed: onOpenPlanner,
+          ),
         ],
       ),
     );

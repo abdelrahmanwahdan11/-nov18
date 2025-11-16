@@ -8,6 +8,7 @@ import '../core/controllers/catalog_controller.dart';
 import '../core/controllers/coach_controller.dart';
 import '../core/controllers/diagnostics_controller.dart';
 import '../core/controllers/insights_controller.dart';
+import '../core/controllers/journey_controller.dart';
 import '../core/controllers/trips_controller.dart';
 import '../core/controllers/vehicle_controller.dart';
 import '../core/localization/app_localizations.dart';
@@ -32,6 +33,7 @@ class _EVSmartAppState extends State<EVSmartApp> {
   late final InsightsController insightsController;
   late final DiagnosticsController diagnosticsController;
   late final CoachController coachController;
+  late final JourneyController journeyController;
   late final AppRouter router;
 
   @override
@@ -46,6 +48,7 @@ class _EVSmartAppState extends State<EVSmartApp> {
     insightsController = InsightsController();
     diagnosticsController = DiagnosticsController();
     coachController = CoachController();
+    journeyController = JourneyController();
     router = AppRouter(
       authController: authController,
       vehicleController: vehicleController,
@@ -56,6 +59,7 @@ class _EVSmartAppState extends State<EVSmartApp> {
       insightsController: insightsController,
       diagnosticsController: diagnosticsController,
       coachController: coachController,
+      journeyController: journeyController,
     );
   }
 
