@@ -28,4 +28,5 @@ class AppRoutes {
   static const diagnostics = '/diagnostics';
   static const coach = '/coach';
   static const journeys = '/journeys';
+  static const impact = '/impact';
 }

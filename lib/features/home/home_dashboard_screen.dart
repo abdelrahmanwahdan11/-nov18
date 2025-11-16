@@ -8,6 +8,7 @@ import '../../core/controllers/app_controller.dart';
 import '../../core/controllers/auth_controller.dart';
 import '../../core/controllers/coach_controller.dart';
 import '../../core/controllers/diagnostics_controller.dart';
+import '../../core/controllers/impact_controller.dart';
 import '../../core/controllers/insights_controller.dart';
 import '../../core/controllers/journey_controller.dart';
 import '../../core/controllers/trips_controller.dart';
@@ -16,6 +17,7 @@ import '../../core/localization/app_localizations.dart';
 import '../../core/models/activity_entry.dart';
 import '../../core/models/driving_tip.dart';
 import '../../core/models/insight.dart';
+import '../../core/models/impact_report.dart';
 import '../../core/models/journey_plan.dart';
 import '../../core/widgets/ai_info_button.dart';
 import '../../core/widgets/app_card.dart';
@@ -38,6 +40,7 @@ class HomeDashboardScreen extends StatefulWidget {
     required this.diagnosticsController,
     required this.coachController,
     required this.journeyController,
+    required this.impactController,
   }) : tripsController = tripsController ?? TripsController();
 
   final AuthController authController;
@@ -49,6 +52,7 @@ class HomeDashboardScreen extends StatefulWidget {
   final DiagnosticsController diagnosticsController;
   final CoachController coachController;
   final JourneyController journeyController;
+  final ImpactController impactController;
 
   @override
   State<HomeDashboardScreen> createState() => _HomeDashboardScreenState();
@@ -70,6 +74,7 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
         diagnosticsController: widget.diagnosticsController,
         coachController: widget.coachController,
         journeyController: widget.journeyController,
+        impactController: widget.impactController,
       ),
       QuickControlsScreen(authController: widget.authController),
       TripsListScreen(controller: widget.tripsController, embedded: true),
@@ -143,6 +148,7 @@ class _DashboardView extends StatelessWidget {
     required this.diagnosticsController,
     required this.coachController,
     required this.journeyController,
+    required this.impactController,
   });
 
   final AuthController authController;
@@ -154,6 +160,7 @@ class _DashboardView extends StatelessWidget {
   final DiagnosticsController diagnosticsController;
   final CoachController coachController;
   final JourneyController journeyController;
+  final ImpactController impactController;
 
   @override
   Widget build(BuildContext context) {
@@ -167,6 +174,7 @@ class _DashboardView extends StatelessWidget {
         diagnosticsController,
         coachController,
         journeyController,
+        impactController,
       ]),
       builder: (context, _) {
         final vehicle = vehicleController.currentVehicle;
@@ -179,6 +187,7 @@ class _DashboardView extends StatelessWidget {
         final coachHighlights = coachController.highlightTips();
         final journeyHighlights = journeyController.featuredPlans();
         final nextJourney = journeyController.nextJourney;
+        final impactSummary = impactController.summary;
         return SingleChildScrollView(
           padding: const EdgeInsets.all(24),
           child: Column(
@@ -384,6 +393,22 @@ class _DashboardView extends StatelessWidget {
                 ),
                 const SizedBox(height: 24),
               ],
+              SectionHeader(
+                title: locale.translate('impactPreviewTitle'),
+                action: TextButton(
+                  onPressed: () =>
+                      Navigator.of(context).pushNamed(AppRoutes.impact),
+                  child: Text(locale.translate('impactPreviewCTA')),
+                ),
+              ),
+              const SizedBox(height: 12),
+              _ImpactPreviewCard(
+                summary: impactSummary,
+                controller: impactController,
+                locale: locale,
+                appController: appController,
+              ),
+              const SizedBox(height: 24),
               if (nextJourney != null) ...[
                 SectionHeader(
                   title: locale.translate('journeyNext'),
@@ -1172,6 +1197,81 @@ class _DiagnosticsPreview extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+class _ImpactPreviewCard extends StatelessWidget {
+  const _ImpactPreviewCard({
+    required this.summary,
+    required this.controller,
+    required this.locale,
+    required this.appController,
+  });
+
+  final ImpactSummary summary;
+  final ImpactController controller;
+  final AppLocalizations locale;
+  final AppController appController;
+
+  @override
+  Widget build(BuildContext context) {
+    final mix = controller.energyMix.entries.toList();
+    return AppCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            locale.translate('impactHeroSaved'),
+            style: Theme.of(context)
+                .textTheme
+                .labelMedium
+                ?.copyWith(fontWeight: FontWeight.w600),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            '${summary.carbonSavedKg.toStringAsFixed(1)} kg',
+            style: Theme.of(context)
+                .textTheme
+                .headlineSmall
+                ?.copyWith(fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            locale.translate('impactMixShare').replaceAll(
+                  '{value}',
+                  '${(summary.renewableShare * 100).round()}%',
+                ),
+          ),
+          const SizedBox(height: 8),
+          LinearProgressIndicator(
+            value: summary.renewableShare,
+            color: appController.primaryColor,
+            minHeight: 6,
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: mix.take(3).map((entry) {
+              return Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(entry.key.toUpperCase()),
+                    Text('${(entry.value * 100).round()}%'),
+                  ],
+                ),
+              );
+            }).toList(),
+          ),
+          const SizedBox(height: 12),
+          if (summary.highlights.isNotEmpty)
+            Text(
+              summary.highlights.first,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+        ],
+      ),
     );
   }
 }

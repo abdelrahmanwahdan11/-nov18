@@ -23,6 +23,7 @@ class AppDrawer extends StatelessWidget {
       (locale.translate('energy'), IconlyBold.sun, AppRoutes.energy),
       (locale.translate('diagnostics'), Icons.health_and_safety, AppRoutes.diagnostics),
       (locale.translate('insights'), Icons.auto_graph_rounded, AppRoutes.insights),
+      (locale.translate('impactTitle'), Icons.eco_rounded, AppRoutes.impact),
       (locale.translate('drivingCoach'), Icons.sports_motorsports, AppRoutes.coach),
       (locale.translate('journeyPlanner'), Icons.alt_route, AppRoutes.journeys),
       (locale.translate('activityCenter'), Icons.timeline, AppRoutes.activity),

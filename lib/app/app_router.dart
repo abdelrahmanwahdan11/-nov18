@@ -6,6 +6,7 @@ import '../core/controllers/auth_controller.dart';
 import '../core/controllers/catalog_controller.dart';
 import '../core/controllers/coach_controller.dart';
 import '../core/controllers/diagnostics_controller.dart';
+import '../core/controllers/impact_controller.dart';
 import '../core/controllers/insights_controller.dart';
 import '../core/controllers/journey_controller.dart';
 import '../core/controllers/trips_controller.dart';
@@ -27,6 +28,7 @@ import '../features/energy/energy_overview_screen.dart';
 import '../features/garage/garage_screen.dart';
 import '../features/help/help_screen.dart';
 import '../features/home/home_dashboard_screen.dart';
+import '../features/impact/impact_screen.dart';
 import '../features/insights/insights_screen.dart';
 import '../features/journeys/journey_planner_screen.dart';
 import '../features/maintenance/maintenance_screen.dart';
@@ -56,6 +58,7 @@ class AppRouter {
     required this.diagnosticsController,
     required this.coachController,
     required this.journeyController,
+    required this.impactController,
   });
 
   final AuthController authController;
@@ -68,6 +71,7 @@ class AppRouter {
   final DiagnosticsController diagnosticsController;
   final CoachController coachController;
   final JourneyController journeyController;
+  final ImpactController impactController;
 
   Route<dynamic>? onGenerateRoute(RouteSettings settings) {
     switch (settings.name) {
@@ -105,6 +109,7 @@ class AppRouter {
             diagnosticsController: diagnosticsController,
             coachController: coachController,
             journeyController: journeyController,
+            impactController: impactController,
           ),
         );
       case AppRoutes.quick:
@@ -211,6 +216,13 @@ class AppRouter {
         return MaterialPageRoute(
           builder: (_) => InsightsScreen(
             controller: insightsController,
+            appController: appController,
+          ),
+        );
+      case AppRoutes.impact:
+        return MaterialPageRoute(
+          builder: (_) => ImpactScreen(
+            controller: impactController,
             appController: appController,
           ),
         );
