@@ -26,4 +26,5 @@ class AppRoutes {
   static const activity = '/activity';
   static const insights = '/insights';
   static const diagnostics = '/diagnostics';
+  static const coach = '/coach';
 }

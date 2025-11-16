@@ -6,12 +6,14 @@ import '../../app/routes.dart';
 import '../../core/controllers/activity_controller.dart';
 import '../../core/controllers/app_controller.dart';
 import '../../core/controllers/auth_controller.dart';
+import '../../core/controllers/coach_controller.dart';
 import '../../core/controllers/diagnostics_controller.dart';
 import '../../core/controllers/insights_controller.dart';
 import '../../core/controllers/trips_controller.dart';
 import '../../core/controllers/vehicle_controller.dart';
 import '../../core/localization/app_localizations.dart';
 import '../../core/models/activity_entry.dart';
+import '../../core/models/driving_tip.dart';
 import '../../core/models/insight.dart';
 import '../../core/widgets/ai_info_button.dart';
 import '../../core/widgets/app_card.dart';
@@ -32,6 +34,7 @@ class HomeDashboardScreen extends StatefulWidget {
     required this.activityController,
     required this.insightsController,
     required this.diagnosticsController,
+    required this.coachController,
   }) : tripsController = tripsController ?? TripsController();
 
   final AuthController authController;
@@ -41,6 +44,7 @@ class HomeDashboardScreen extends StatefulWidget {
   final ActivityController activityController;
   final InsightsController insightsController;
   final DiagnosticsController diagnosticsController;
+  final CoachController coachController;
 
   @override
   State<HomeDashboardScreen> createState() => _HomeDashboardScreenState();
@@ -60,6 +64,7 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
         activityController: widget.activityController,
         insightsController: widget.insightsController,
         diagnosticsController: widget.diagnosticsController,
+        coachController: widget.coachController,
       ),
       QuickControlsScreen(authController: widget.authController),
       TripsListScreen(controller: widget.tripsController, embedded: true),
@@ -98,6 +103,7 @@ class _DashboardView extends StatelessWidget {
     required this.activityController,
     required this.insightsController,
     required this.diagnosticsController,
+    required this.coachController,
   });
 
   final AuthController authController;
@@ -107,6 +113,7 @@ class _DashboardView extends StatelessWidget {
   final ActivityController activityController;
   final InsightsController insightsController;
   final DiagnosticsController diagnosticsController;
+  final CoachController coachController;
 
   @override
   Widget build(BuildContext context) {
@@ -118,6 +125,7 @@ class _DashboardView extends StatelessWidget {
         activityController,
         insightsController,
         diagnosticsController,
+        coachController,
       ]),
       builder: (context, _) {
         final vehicle = vehicleController.currentVehicle;
@@ -127,6 +135,7 @@ class _DashboardView extends StatelessWidget {
         final timeline = activityController.recentEntries();
         final insights = insightsController.highlights;
         final diagnostics = diagnosticsController.reports;
+        final coachHighlights = coachController.highlightTips();
         return SingleChildScrollView(
           padding: const EdgeInsets.all(24),
           child: Column(
@@ -301,6 +310,33 @@ class _DashboardView extends StatelessWidget {
                     },
                     separatorBuilder: (_, __) => const SizedBox(width: 16),
                     itemCount: insights.length,
+                  ),
+                ),
+                const SizedBox(height: 24),
+              ],
+              if (coachHighlights.isNotEmpty) ...[
+                SectionHeader(
+                  title: locale.translate('drivingCoach'),
+                  action: TextButton(
+                    onPressed: () =>
+                        Navigator.of(context).pushNamed(AppRoutes.coach),
+                    child: Text(locale.translate('coachPreviewCTA')),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                SizedBox(
+                  height: 130,
+                  child: ListView.separated(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: coachHighlights.length,
+                    separatorBuilder: (_, __) => const SizedBox(width: 16),
+                    itemBuilder: (context, index) {
+                      final tip = coachHighlights[index];
+                      return SizedBox(
+                        width: 220,
+                        child: _CoachPreviewCard(tip: tip),
+                      );
+                    },
                   ),
                 ),
                 const SizedBox(height: 24),
@@ -559,6 +595,73 @@ class _InsightPreviewCard extends StatelessWidget {
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
           ),
+        ],
+      ),
+    );
+  }
+}
+
+class _CoachPreviewCard extends StatelessWidget {
+  const _CoachPreviewCard({required this.tip});
+
+  final DrivingTip tip;
+
+  @override
+  Widget build(BuildContext context) {
+    return AppCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(tip.category.icon,
+                  color: Theme.of(context).colorScheme.primary),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  tip.title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context)
+                      .textTheme
+                      .titleMedium
+                      ?.copyWith(fontWeight: FontWeight.bold),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            tip.description,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
+          const Spacer(),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              Chip(
+                label: Text(tip.focus),
+                visualDensity: VisualDensity.compact,
+              ),
+              Chip(
+                label: Text('+${tip.scoreImpact.toStringAsFixed(1)}'),
+                visualDensity: VisualDensity.compact,
+              ),
+            ],
+          ),
+          if (tip.badge != null) ...[
+            const SizedBox(height: 8),
+            Text(
+              tip.badge!,
+              style: Theme.of(context)
+                  .textTheme
+                  .labelMedium
+                  ?.copyWith(color: Theme.of(context).colorScheme.primary),
+            ),
+          ],
         ],
       ),
     );

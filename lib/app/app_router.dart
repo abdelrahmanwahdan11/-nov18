@@ -4,6 +4,7 @@ import '../core/controllers/activity_controller.dart';
 import '../core/controllers/app_controller.dart';
 import '../core/controllers/auth_controller.dart';
 import '../core/controllers/catalog_controller.dart';
+import '../core/controllers/coach_controller.dart';
 import '../core/controllers/diagnostics_controller.dart';
 import '../core/controllers/insights_controller.dart';
 import '../core/controllers/trips_controller.dart';
@@ -19,6 +20,7 @@ import '../features/auth/verify_code_screen.dart';
 import '../features/catalog/catalog_screen.dart';
 import '../features/catalog/compare_screen.dart';
 import '../features/charging/charging_screen.dart';
+import '../features/coach/driving_coach_screen.dart';
 import '../features/diagnostics/diagnostics_screen.dart';
 import '../features/energy/energy_overview_screen.dart';
 import '../features/garage/garage_screen.dart';
@@ -50,6 +52,7 @@ class AppRouter {
     required this.activityController,
     required this.insightsController,
     required this.diagnosticsController,
+    required this.coachController,
   });
 
   final AuthController authController;
@@ -60,6 +63,7 @@ class AppRouter {
   final ActivityController activityController;
   final InsightsController insightsController;
   final DiagnosticsController diagnosticsController;
+  final CoachController coachController;
 
   Route<dynamic>? onGenerateRoute(RouteSettings settings) {
     switch (settings.name) {
@@ -95,6 +99,7 @@ class AppRouter {
             activityController: activityController,
             insightsController: insightsController,
             diagnosticsController: diagnosticsController,
+            coachController: coachController,
           ),
         );
       case AppRoutes.quick:
@@ -203,6 +208,10 @@ class AppRouter {
             controller: insightsController,
             appController: appController,
           ),
+        );
+      case AppRoutes.coach:
+        return MaterialPageRoute(
+          builder: (_) => DrivingCoachScreen(controller: coachController),
         );
       case AppRoutes.diagnostics:
         return MaterialPageRoute(
