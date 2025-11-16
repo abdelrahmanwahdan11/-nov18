@@ -3,11 +3,13 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:iconly/iconly.dart';
 
 import '../../app/routes.dart';
+import '../../core/controllers/activity_controller.dart';
 import '../../core/controllers/app_controller.dart';
 import '../../core/controllers/auth_controller.dart';
 import '../../core/controllers/trips_controller.dart';
 import '../../core/controllers/vehicle_controller.dart';
 import '../../core/localization/app_localizations.dart';
+import '../../core/models/activity_entry.dart';
 import '../../core/widgets/ai_info_button.dart';
 import '../../core/widgets/app_card.dart';
 import '../../core/widgets/app_scaffold.dart';
@@ -24,12 +26,14 @@ class HomeDashboardScreen extends StatefulWidget {
     required this.vehicleController,
     required this.appController,
     TripsController? tripsController,
+    required this.activityController,
   }) : tripsController = tripsController ?? TripsController();
 
   final AuthController authController;
   final VehicleController vehicleController;
   final AppController appController;
   final TripsController tripsController;
+  final ActivityController activityController;
 
   @override
   State<HomeDashboardScreen> createState() => _HomeDashboardScreenState();
@@ -46,6 +50,7 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
         vehicleController: widget.vehicleController,
         appController: widget.appController,
         tripsController: widget.tripsController,
+        activityController: widget.activityController,
       ),
       QuickControlsScreen(authController: widget.authController),
       TripsListScreen(controller: widget.tripsController, embedded: true),
@@ -81,23 +86,27 @@ class _DashboardView extends StatelessWidget {
     required this.vehicleController,
     required this.appController,
     required this.tripsController,
+    required this.activityController,
   });
 
   final AuthController authController;
   final VehicleController vehicleController;
   final AppController appController;
   final TripsController tripsController;
+  final ActivityController activityController;
 
   @override
   Widget build(BuildContext context) {
     final locale = AppLocalizations.of(context);
     return AnimatedBuilder(
-      animation: Listenable.merge([vehicleController, appController]),
+      animation: Listenable.merge(
+          [vehicleController, appController, activityController]),
       builder: (context, _) {
         final vehicle = vehicleController.currentVehicle;
         final vehicles = vehicleController.vehicles;
         final greeting = authController.user?.name ?? 'Guest';
         final upcomingTrip = tripsController.nextTrip;
+        final timeline = activityController.recentEntries();
         return SingleChildScrollView(
           padding: const EdgeInsets.all(24),
           child: Column(
@@ -393,11 +402,140 @@ class _DashboardView extends StatelessWidget {
                   ),
                 ),
               ),
+              if (timeline.isNotEmpty) ...[
+                const SizedBox(height: 24),
+                SectionHeader(
+                  title: locale.translate('activityTimeline'),
+                  action: TextButton(
+                    onPressed: () =>
+                        Navigator.of(context).pushNamed(AppRoutes.activity),
+                    child: Text(locale.translate('viewAll')),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                ...timeline.map(
+                  (entry) => Padding(
+                    padding: const EdgeInsets.only(bottom: 12),
+                    child: _ActivityPreviewTile(
+                      entry: entry,
+                      locale: locale,
+                      appController: appController,
+                    ),
+                  ),
+                ),
+              ],
             ],
           ),
         );
       },
     );
+  }
+}
+
+class _ActivityPreviewTile extends StatelessWidget {
+  const _ActivityPreviewTile({
+    required this.entry,
+    required this.locale,
+    required this.appController,
+  });
+
+  final ActivityEntry entry;
+  final AppLocalizations locale;
+  final AppController appController;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = entry.categoryColor(Theme.of(context).colorScheme);
+    final timeFormatter = MaterialLocalizations.of(context);
+    final timestamp = timeFormatter.formatTimeOfDay(
+      TimeOfDay.fromDateTime(entry.timestamp),
+    );
+    final metric = _formatMetric();
+    return AppCard(
+      child: InkWell(
+        onTap: () => Navigator.of(context).pushNamed(AppRoutes.activity),
+        child: Row(
+          children: [
+            Container(
+              width: 6,
+              height: 60,
+              decoration: BoxDecoration(
+                color: color,
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    _categoryLabel(entry.category),
+                    style: Theme.of(context)
+                        .textTheme
+                        .labelMedium
+                        ?.copyWith(color: color),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    entry.title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: Theme.of(context)
+                        .textTheme
+                        .titleMedium
+                        ?.copyWith(fontWeight: FontWeight.w600),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    metric ?? entry.status ?? locale.translate('activityOpen'),
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 12),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Text(
+                  timestamp,
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+                const Icon(Icons.chevron_right_rounded),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  String? _formatMetric() {
+    if (entry.metricValue == null) return null;
+    final label = entry.metricLabel ?? '';
+    if (label.toLowerCase().contains('km')) {
+      return appController.formatDistance(entry.metricValue!, includeUnit: true);
+    }
+    if (label.contains('%')) {
+      return '${entry.metricValue!.toStringAsFixed(0)}$label';
+    }
+    return '${entry.metricValue!.toStringAsFixed(0)} $label'.trim();
+  }
+
+  String _categoryLabel(ActivityCategory category) {
+    switch (category) {
+      case ActivityCategory.charging:
+        return locale.translate('activityCharging');
+      case ActivityCategory.trip:
+        return locale.translate('activityTrips');
+      case ActivityCategory.maintenance:
+        return locale.translate('activityMaintenance');
+      case ActivityCategory.energy:
+        return locale.translate('activityEnergy');
+      case ActivityCategory.alert:
+        return locale.translate('activityAlerts');
+    }
   }
 }
 

@@ -21,6 +21,7 @@ class AppDrawer extends StatelessWidget {
       (locale.translate('globalSearch'), IconlyBold.search, AppRoutes.globalSearch),
       (locale.translate('quickControls'), IconlyBold.setting, AppRoutes.quick),
       (locale.translate('energy'), IconlyBold.sun, AppRoutes.energy),
+      (locale.translate('activityCenter'), Icons.timeline, AppRoutes.activity),
       (locale.translate('stations'), IconlyBold.location, AppRoutes.stations),
       (locale.translate('trips'), IconlyBold.discovery, AppRoutes.trips),
       (locale.translate('maintenance'), IconlyBold.activity, AppRoutes.maintenance),

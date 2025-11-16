@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../core/controllers/activity_controller.dart';
 import '../core/controllers/app_controller.dart';
 import '../core/controllers/auth_controller.dart';
 import '../core/controllers/catalog_controller.dart';
@@ -8,6 +9,7 @@ import '../core/controllers/vehicle_controller.dart';
 import '../core/models/compare_entry.dart';
 import '../core/models/station.dart';
 import '../core/models/trip.dart';
+import '../features/activity/activity_center_screen.dart';
 import '../features/auth/forgot_password_screen.dart';
 import '../features/auth/login_screen.dart';
 import '../features/auth/register_screen.dart';
@@ -41,6 +43,7 @@ class AppRouter {
     required this.tripsController,
     required this.catalogController,
     required this.appController,
+    required this.activityController,
   });
 
   final AuthController authController;
@@ -48,6 +51,7 @@ class AppRouter {
   final TripsController tripsController;
   final CatalogController catalogController;
   final AppController appController;
+  final ActivityController activityController;
 
   Route<dynamic>? onGenerateRoute(RouteSettings settings) {
     switch (settings.name) {
@@ -80,6 +84,7 @@ class AppRouter {
             vehicleController: vehicleController,
             appController: appController,
             tripsController: tripsController,
+            activityController: activityController,
           ),
         );
       case AppRoutes.quick:
@@ -174,6 +179,13 @@ class AppRouter {
       case AppRoutes.help:
         return MaterialPageRoute(
           builder: (_) => const HelpScreen(),
+        );
+      case AppRoutes.activity:
+        return MaterialPageRoute(
+          builder: (_) => ActivityCenterScreen(
+            controller: activityController,
+            appController: appController,
+          ),
         );
       case AppRoutes.splash:
       default:
