@@ -1,0 +1,24 @@
+name: ev_smart_companion
+version: 0.1.0
+publish_to: 'none'
+description: EV Smart Companion App prototype.
+environment:
+  sdk: '>=3.4.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+  google_fonts: ^6.1.0
+  shared_preferences: ^2.2.2
+  iconly: ^1.0.1
+  flutter_animate: ^4.5.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.1
+
+flutter:
+  uses-material-design: true

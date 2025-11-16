@@ -1,0 +1,23 @@
+class AppRoutes {
+  static const splash = '/';
+  static const onboarding = '/onboarding';
+  static const login = '/login';
+  static const register = '/register';
+  static const verify = '/verify';
+  static const forgot = '/forgot';
+  static const home = '/home';
+  static const quick = '/quick';
+  static const energy = '/energy';
+  static const charging = '/charging';
+  static const stations = '/stations';
+  static const stationDetails = '/stations/details';
+  static const trips = '/trips';
+  static const tripDetails = '/trips/details';
+  static const maintenance = '/maintenance';
+  static const catalog = '/catalog';
+  static const compare = '/catalog/compare';
+  static const profile = '/profile';
+  static const editProfile = '/profile/edit';
+  static const settings = '/settings';
+  static const notifications = '/notifications';
+}
