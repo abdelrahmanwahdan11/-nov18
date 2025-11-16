@@ -17,6 +17,7 @@ class AppDrawer extends StatelessWidget {
     final locale = AppLocalizations.of(context);
     final entries = [
       (locale.translate('dashboard'), IconlyBold.home, AppRoutes.home),
+      (locale.translate('garage'), Icons.directions_car_filled, AppRoutes.garage),
       (locale.translate('globalSearch'), IconlyBold.search, AppRoutes.globalSearch),
       (locale.translate('quickControls'), IconlyBold.setting, AppRoutes.quick),
       (locale.translate('energy'), IconlyBold.sun, AppRoutes.energy),

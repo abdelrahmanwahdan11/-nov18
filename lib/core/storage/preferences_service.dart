@@ -30,6 +30,26 @@ class PreferencesService {
     return prefs.getString(key);
   }
 
+  Future<void> setInt(String key, int value) async {
+    final prefs = await _instance;
+    await prefs.setInt(key, value);
+  }
+
+  Future<int> getInt(String key, {int defaultValue = 0}) async {
+    final prefs = await _instance;
+    return prefs.getInt(key) ?? defaultValue;
+  }
+
+  Future<void> setStringList(String key, List<String> value) async {
+    final prefs = await _instance;
+    await prefs.setStringList(key, value);
+  }
+
+  Future<List<String>?> getStringList(String key) async {
+    final prefs = await _instance;
+    return prefs.getStringList(key);
+  }
+
   Future<void> remove(String key) async {
     final prefs = await _instance;
     await prefs.remove(key);

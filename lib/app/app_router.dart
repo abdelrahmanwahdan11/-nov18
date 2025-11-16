@@ -16,6 +16,7 @@ import '../features/catalog/catalog_screen.dart';
 import '../features/catalog/compare_screen.dart';
 import '../features/charging/charging_screen.dart';
 import '../features/energy/energy_overview_screen.dart';
+import '../features/garage/garage_screen.dart';
 import '../features/help/help_screen.dart';
 import '../features/home/home_dashboard_screen.dart';
 import '../features/maintenance/maintenance_screen.dart';
@@ -121,6 +122,13 @@ class AppRouter {
       case AppRoutes.catalog:
         return MaterialPageRoute(
           builder: (_) => CatalogScreen(controller: catalogController),
+        );
+      case AppRoutes.garage:
+        return MaterialPageRoute(
+          builder: (_) => GarageScreen(
+            vehicleController: vehicleController,
+            appController: appController,
+          ),
         );
       case AppRoutes.compare:
         List<CompareEntry>? entries;

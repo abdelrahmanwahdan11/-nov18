@@ -7,6 +7,7 @@ import '../../core/controllers/app_controller.dart';
 import '../../core/controllers/auth_controller.dart';
 import '../../core/controllers/trips_controller.dart';
 import '../../core/controllers/vehicle_controller.dart';
+import '../../core/localization/app_localizations.dart';
 import '../../core/widgets/ai_info_button.dart';
 import '../../core/widgets/app_card.dart';
 import '../../core/widgets/app_scaffold.dart';
@@ -89,10 +90,12 @@ class _DashboardView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final locale = AppLocalizations.of(context);
     return AnimatedBuilder(
       animation: Listenable.merge([vehicleController, appController]),
       builder: (context, _) {
         final vehicle = vehicleController.currentVehicle;
+        final vehicles = vehicleController.vehicles;
         final greeting = authController.user?.name ?? 'Guest';
         final upcomingTrip = tripsController.nextTrip;
         return SingleChildScrollView(
@@ -132,6 +135,99 @@ class _DashboardView extends StatelessWidget {
               _VehicleCard(
                 vehicleController: vehicleController,
                 appController: appController,
+              ),
+              const SizedBox(height: 16),
+              SectionHeader(
+                title: locale.translate('garage'),
+                action: TextButton(
+                  onPressed: () =>
+                      Navigator.of(context).pushNamed(AppRoutes.garage),
+                  child: Text(locale.translate('garageManage')),
+                ),
+              ),
+              const SizedBox(height: 12),
+              SizedBox(
+                height: 140,
+                child: ListView.separated(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: vehicles.length,
+                  separatorBuilder: (_, __) => const SizedBox(width: 12),
+                  itemBuilder: (context, index) {
+                    final item = vehicles[index];
+                    final selected =
+                        index == vehicleController.selectedIndex;
+                    return SizedBox(
+                      width: 210,
+                      child: AppCard(
+                        child: InkWell(
+                          onTap: () => vehicleController.selectVehicle(index),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      item.name,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .titleMedium
+                                          ?.copyWith(
+                                              fontWeight: FontWeight.bold),
+                                    ),
+                                  ),
+                                  IconButton(
+                                    icon: Icon(
+                                      item.isFavorite
+                                          ? Icons.favorite
+                                          : Icons.favorite_border,
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .primary,
+                                    ),
+                                    onPressed: () => vehicleController
+                                        .toggleFavorite(item.id),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                appController
+                                    .formatDistance(item.range.toDouble()),
+                                style: Theme.of(context).textTheme.bodySmall,
+                              ),
+                              const Spacer(),
+                              LinearProgressIndicator(
+                                value: item.batteryLevel,
+                                minHeight: 6,
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                selected
+                                    ? locale.translate('primaryVehicle')
+                                    : locale.translate('setPrimary'),
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .labelMedium
+                                    ?.copyWith(
+                                        color: selected
+                                            ? Theme.of(context)
+                                                .colorScheme
+                                                .primary
+                                            : Theme.of(context)
+                                                .textTheme
+                                                .bodySmall
+                                                ?.color),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
               ),
               const SizedBox(height: 24),
               SectionHeader(
