@@ -1,14 +1,16 @@
 import 'package:flutter/material.dart';
 
 class AiInfoButton extends StatelessWidget {
-  const AiInfoButton({super.key});
+  const AiInfoButton({super.key, this.onPressed});
+
+  final VoidCallback? onPressed;
 
   @override
   Widget build(BuildContext context) {
     return IconButton(
       icon: const Icon(Icons.auto_awesome_rounded),
       tooltip: 'AI',
-      onPressed: () {
+      onPressed: onPressed ?? () {
         showModalBottomSheet(
           context: context,
           shape:
